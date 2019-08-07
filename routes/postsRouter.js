@@ -18,26 +18,64 @@ router.post('/', (req, res) => {
 })
 
 router.post('/:id/comments', (req, res) => {
-    const id = req.params.id;
-    const comment = req.body.comments
-    !id
-    ?
-    res.status(400).json({ errorMessage: "The post with the specified ID does not exist." })
-    :
-    null;
+    const commentInfo = req.body;
+    const postId = req.params;
+    console.log(commentInfo)
+    console.log(postId)
     
-    !comment
-    ?
-    res.status(400).json({ errorMessage: "Please provide text for the comment." })
-    :
-    db.findCommentById(id)
-        .then(userComments => {
-            res.status(201).json(userComments)
+    if (commentInfo.text && (commentInfo.post_id === postId.id)){
+        db.findById(postId)
+        .then(post => {
+            if(post){
+                db.insertComment(commentInfo)
+                .then(id => {
+                    res.status(201).json(id);
+                })
+                .catch(err => {
+                    res.status(500).json({error: "There was an error saving the comment to the database."});
+                });
+            }
+            else {
+                res.status(404).json({message: "The post with the specified ID does not exist."});
+            }
         })
-        .catch( err => {
-            res.status(500).json({errorMessage: "There was an error while saving the comment to the database"})
+        .catch(err => {
+            res.status(500).json({error: "There was an error saving the comment to the database."});
+
         })
+        
+    }else {
+        res.status(400).json({errorMessage: 'Please provide text for the comment.'});
+    }
 });
+//     const id = req.params.id;
+//     const comment = req.body.comments
+//     !id
+//     ?
+//     res.status(400).json({ errorMessage: "The post with the specified ID does not exist." })
+//     :
+//      null;
+    
+//     !comment
+//     ?
+//     res.status(400).json({ errorMessage: "Please provide text for the comment." })
+//     :
+//     db.insertComment(id)
+//     .then(response => {
+//         console.log("Here is comment by the ID", response)
+//         db.findCommentById(response)
+//             .then(comment => {
+//                 res.status(201).json(comment)
+//             })
+//             .catch( err => {
+//                 res.status(500).json({errorMessage: "There was an error while saving the comment to the database"})
+//             })
+//     })
+//     .catch(err => {
+//         res.status(404).json({ message: "The post with the specified ID does not exist." })
+//     })
+// });
+
 
 router.get('/', (req, res) => {
     db.find()
